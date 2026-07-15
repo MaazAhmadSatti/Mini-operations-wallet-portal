@@ -17,9 +17,15 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Mini Operations Wallet Portal API')
-    .setDescription('API documentation for the Mini Operations Wallet Portal')
+    .setDescription(
+      'Operations wallet API. Clients must send referenceId on credit/debit (unique per wallet). See docs/FRONTEND-API-CONTEXT.md.',
+    )
     .setVersion('1.0')
     .addTag('health', 'Health check endpoints')
+    .addTag('users')
+    .addTag('wallets')
+    .addTag('transactions')
+    .addTag('reports')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

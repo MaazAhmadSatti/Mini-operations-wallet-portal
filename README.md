@@ -20,126 +20,128 @@ npm install
 
 ### 2. Configure environment
 
-Copy the example env file and adjust values if needed:
-
 ```bash
 cp .env.example .env
 ```
 
-Default local values:
-
-| Variable     | Default                  | Description              |
-| ------------ | ------------------------ | ------------------------ |
-| `NODE_ENV`   | `development`            | Runtime environment      |
-| `PORT`       | `3000`                   | API port                 |
-| `DB_HOST`    | `localhost`              | PostgreSQL host          |
-| `DB_PORT`    | `5432`                   | PostgreSQL port          |
-| `DB_USERNAME`| `postgres`               | Database user            |
-| `DB_PASSWORD`| `postgres`               | Database password        |
-| `DB_DATABASE`| `mini_operations_wallet` | Database name            |
+| Variable      | Default                  | Description |
+| ------------- | ------------------------ | ----------- |
+| `NODE_ENV`    | `development`            | Runtime environment |
+| `PORT`        | `3000`                   | API port |
+| `DB_HOST`     | `localhost`              | PostgreSQL host |
+| `DB_PORT`     | `5432`                   | PostgreSQL port |
+| `DB_USERNAME` | `postgres`               | Database user |
+| `DB_PASSWORD` | `postgres`               | Database password |
+| `DB_DATABASE` | `mini_operations_wallet` | Database name |
+| `SEED_DATA`   | `false`                  | When `true`, seed 3 users with USD wallets @ balance `100` |
 
 ### 3. Start PostgreSQL
-
-**Option A — Docker (recommended)**
 
 ```bash
 docker compose up postgres -d
 ```
 
-**Option B — Local PostgreSQL**
-
-Create a database named `mini_operations_wallet` and ensure credentials match your `.env`.
+Or create a local database named `mini_operations_wallet` matching `.env`.
 
 ### 4. Run the API
 
 ```bash
+# optional: seed demo users/wallets
+# set SEED_DATA=true in .env
+
 npm run start:dev
 ```
 
-The API will be available at:
-
-- **API base:** http://localhost:3000/api
-- **Swagger docs:** http://localhost:3000/api/docs
-- **Health check:** http://localhost:3000/api/health
+- **API base:** http://localhost:3000/api  
+- **Swagger:** http://localhost:3000/api/docs  
+- **Health:** http://localhost:3000/api/health  
 
 ## Docker (Full Stack)
-
-Run both PostgreSQL and the API with hot reload:
 
 ```bash
 docker compose up --build
 ```
 
-Stop services:
-
 ```bash
-docker compose down
+docker compose down        # stop
+docker compose down -v     # stop + wipe DB volume
 ```
 
-Remove volumes (clears database data):
+## API overview
 
-```bash
-docker compose down -v
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| `POST` | `/api/users` | Create user |
+| `GET` | `/api/users` | List users (`page`, `limit`, `search`) |
+| `POST` | `/api/wallets` | Create wallet (balance starts at `0`) |
+| `GET` | `/api/wallets` | List wallets (`page`, `limit`, optional `userId`, `currency`, `status`) |
+| `GET` | `/api/wallets/:id` | Get wallet |
+| `POST` | `/api/wallets/:id/credit` | Credit (`amount`, `referenceId`, optional `description`) |
+| `POST` | `/api/wallets/:id/debit` | Debit (same body; no negative balance) |
+| `GET` | `/api/wallets/:id/transactions` | Ledger (`page`, `limit`, `type`, `referenceId`) |
+| `GET` | `/api/reports/daily-summary?date=YYYY-MM-DD` | System-wide UTC daily summary (zeros if empty; no pagination) |
+| `GET` | `/api/health` | Health check |
+
+**Important:** Clients must generate and send `referenceId` on credit/debit (unique **per wallet**). Retries must reuse the same id. Duplicates → `409`. See [docs/FRONTEND-API-CONTEXT.md](docs/FRONTEND-API-CONTEXT.md).
+
+## Seed data
+
+Set `SEED_DATA=true` then restart the API. Seeds (idempotent by email):
+
+| Email | Wallet |
+| ----- | ------ |
+| `seed.alice@example.com` | USD @ `100.00` |
+| `seed.bob@example.com` | USD @ `100.00` |
+| `seed.carol@example.com` | USD @ `100.00` |
+
+## Project structure
+
+```
+src/
+├── users/
+├── wallets/            # credit/debit + locking live here
+├── transactions/
+├── reports/            # daily summary
+├── common/             # pagination, money helpers
+├── database/           # TypeORM config + SeedModule
+├── health/
+└── main.ts
 ```
 
 ## Available Scripts
 
-| Script              | Description                          |
-| ------------------- | ------------------------------------ |
-| `npm run start`     | Start in production mode             |
-| `npm run start:dev` | Start with watch mode (development)  |
-| `npm run start:prod`| Run compiled production build        |
-| `npm run build`     | Compile TypeScript to `dist/`        |
-| `npm run lint`      | Run ESLint                           |
-| `npm run test`      | Run unit tests                       |
-| `npm run test:e2e`  | Run end-to-end tests                 |
-| `npm run migration:generate -- src/database/migrations/MigrationName` | Generate a migration |
-| `npm run migration:run`   | Run pending migrations       |
-| `npm run migration:revert`  | Revert last migration        |
+| Script | Description |
+| ------ | ----------- |
+| `npm run start:dev` | Watch mode |
+| `npm run build` | Compile to `dist/` |
+| `npm run start:prod` | Run compiled build |
+| `npm run lint` | ESLint |
+| `npm run test` | Unit tests |
+| `npm run migration:run` | Run migrations |
 
-## Project Structure
+## Architecture and domain docs
 
-```
-src/
-├── database/
-│   ├── data-source.ts      # TypeORM CLI data source
-│   ├── migrations/         # Database migrations
-│   └── typeorm.config.ts   # NestJS TypeORM config
-├── health/
-│   ├── health.controller.ts
-│   └── health.module.ts
-├── app.module.ts
-└── main.ts
-```
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — stack and layout  
+- [docs/DOMAIN-AND-SOLUTION.md](docs/DOMAIN-AND-SOLUTION.md) — domain + technical decisions  
+- [docs/FRONTEND-API-CONTEXT.md](docs/FRONTEND-API-CONTEXT.md) — FE-oriented API guide  
 
-## Adding New Features
+## Known limitations
 
-1. Generate a module: `npx nest g module <name>`
-2. Generate a controller: `npx nest g controller <name>`
-3. Generate a service: `npx nest g service <name>`
-4. Create entities in your module folder (e.g. `*.entity.ts`)
-5. TypeORM will auto-load entities via `autoLoadEntities: true`
-
-## API Endpoints
-
-| Method | Path          | Description                    |
-| ------ | ------------- | ------------------------------ |
-| GET    | `/api`        | Root / welcome message         |
-| GET    | `/api/health` | Health check (includes DB ping)|
+- No authentication (implicit system-admin API).
+- No wallet-to-wallet transfer endpoint.
+- Daily summaries bucket by **UTC** date.
+- `synchronize` is enabled outside production; use migrations in production.
 
 ## Production Notes
 
-- Set `NODE_ENV=production` — schema sync is disabled in production
-- Use migrations instead of `synchronize: true`
-- Build the Docker production image: `docker build --target production -t mini-operations-wallet-portal .`
-
-## Architecture
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for stack, request flow, layout, and design decisions.
+- Set `NODE_ENV=production` (disables schema sync).
+- Prefer migrations over `synchronize`.
+- Keep `SEED_DATA=false` in production unless intentionally seeding.
+- Production image: `docker build --target production -t mini-operations-wallet-portal .`
 
 ## AI usage disclosure
 
-Parts of this project’s initial scaffolding (NestJS layout, Docker/Compose setup, TypeORM/PostgreSQL wiring, health module, Swagger bootstrap, and docs) were generated and assisted with Cursor AI. Business logic and subsequent features are developed by the team; AI may also be used for scaffolding, refactors, and explanations. Review and ownership remain with the human authors.
+Parts of this project’s initial scaffolding (NestJS layout, Docker/Compose setup, TypeORM/PostgreSQL wiring, health module, Swagger bootstrap, domain docs, and feature modules) were generated and assisted with Cursor AI. Business logic and subsequent features are developed by the team; AI may also be used for scaffolding, refactors, and explanations. Review and ownership remain with the human authors.
 
 ## License
 

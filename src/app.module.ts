@@ -5,6 +5,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
 import { typeOrmConfig } from './database/typeorm.config';
+import { SeedModule } from './database/seed.module';
+import { UsersModule } from './users/users.module';
+import { WalletsModule } from './wallets/wallets.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -14,6 +19,11 @@ import { typeOrmConfig } from './database/typeorm.config';
     }),
     TypeOrmModule.forRootAsync(typeOrmConfig),
     HealthModule,
+    UsersModule,
+    WalletsModule,
+    TransactionsModule,
+    ReportsModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
