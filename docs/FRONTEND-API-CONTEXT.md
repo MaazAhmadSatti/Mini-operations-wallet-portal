@@ -77,7 +77,7 @@ Create a user.
 ```json
 {
   "name": "Alice Admin",
-  "phone": "+10000000001",
+  "phone": "10000000001",
   "email": "alice@example.com",
   "status": "active"
 }

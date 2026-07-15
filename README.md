@@ -1,160 +1,112 @@
 # Mini Operations Wallet Portal
 
-NestJS backend API for the Mini Operations Wallet Portal, with PostgreSQL, TypeORM, Swagger, and Docker support.
+NestJS + PostgreSQL wallet ops API with a minimal React admin UI.
 
-## Prerequisites
+## Prerequisites (install these)
 
-- [Node.js](https://nodejs.org/) 20+ (22 recommended)
-- [npm](https://www.npmjs.com/) 10+
-- [Docker](https://www.docker.com/) and Docker Compose (optional, for containerized setup)
+| Tool | Version | Why |
+|------|---------|-----|
+| [Node.js](https://nodejs.org/) | 20+ (22 recommended) | Runs Nest API and Vite/React UI |
+| npm | 10+ (comes with Node) | Installs project dependencies |
+| [Docker](https://www.docker.com/) + Compose | recent | Postgres via `docker compose` (or use your own Postgres 16+) |
 
-## Quick Start (Local)
+**Stack (installed by `npm install` — do not install globally):**
 
-### 1. Clone and install
+| Area | Packages |
+|------|----------|
+| Backend | NestJS 11, TypeORM, PostgreSQL driver (`pg`), Swagger, Terminus, decimal.js, Jest |
+| Frontend (`frontend/`) | React 19, React Router, Vite 6, TypeScript |
+
+Check versions:
 
 ```bash
-git clone <repository-url>
-cd mini-operations-wallet-portal
-npm install
+node -v
+npm -v
+docker -v
+docker compose version
 ```
 
-### 2. Configure environment
+## Quick start
 
 ```bash
 cp .env.example .env
-```
-
-| Variable      | Default                  | Description |
-| ------------- | ------------------------ | ----------- |
-| `NODE_ENV`    | `development`            | Runtime environment |
-| `PORT`        | `3000`                   | API port |
-| `DB_HOST`     | `localhost`              | PostgreSQL host |
-| `DB_PORT`     | `5432`                   | PostgreSQL port |
-| `DB_USERNAME` | `postgres`               | Database user |
-| `DB_PASSWORD` | `postgres`               | Database password |
-| `DB_DATABASE` | `mini_operations_wallet` | Database name |
-| `SEED_DATA`   | `false`                  | When `true`, seed 3 users with USD wallets @ balance `100` |
-
-### 3. Start PostgreSQL
-
-```bash
 docker compose up postgres -d
-```
-
-Or create a local database named `mini_operations_wallet` matching `.env`.
-
-### 4. Run the API
-
-```bash
-# optional: seed demo users/wallets
-# set SEED_DATA=true in .env
-
+npm install
+# optional: SEED_DATA=true in .env
 npm run start:dev
 ```
 
-- **API base:** http://localhost:3000/api  
-- **Swagger:** http://localhost:3000/api/docs  
-- **Health:** http://localhost:3000/api/health  
+- API: http://localhost:3000/api  
+- Swagger: http://localhost:3000/api/docs  
 
-### 5. Run the frontend (optional admin UI)
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-- **UI:** http://localhost:5173  
-- Guide: [docs/FRONTEND.md](docs/FRONTEND.md)
-
-## Docker (Full Stack)
+**Frontend**
 
 ```bash
-docker compose up --build
+cd frontend && npm install && npm run dev
 ```
+
+- UI: http://localhost:5173 (proxies `/api` → `:3000`)
+
+| Env | Default | Notes |
+|-----|---------|--------|
+| `PORT` | `3000` | API |
+| `DB_*` | local postgres | See `.env.example` |
+| `SEED_DATA` | `false` | `true` → 3 users + USD wallets @ `100.00` |
+
+## API (summary)
+
+Users, wallets, credit/debit, transactions, `GET /reports/overview`, `GET /reports/daily-summary?date=`.  
+Credit/debit require client `referenceId` (unique per wallet); duplicates → **409**.  
+Details: [docs/FRONTEND-API-CONTEXT.md](docs/FRONTEND-API-CONTEXT.md).
+
+## Docs
+
+| Doc | Content |
+|-----|---------|
+| [ARCHITECTURE](docs/ARCHITECTURE.md) | Stack / layout |
+| [DOMAIN-AND-SOLUTION](docs/DOMAIN-AND-SOLUTION.md) | Domain + technical decisions |
+| [FRONTEND-API-CONTEXT](docs/FRONTEND-API-CONTEXT.md) | API contract for UI/clients |
+| [FRONTEND](docs/FRONTEND.md) | UI structure + how it works |
+| [TESTING](docs/TESTING.md) | Automated tests + concurrency notes |
+
+## Frontend manual checklist
+
+With API + `SEED_DATA=true` and UI running:
+
+1. **Dashboard** — overview cards show totals (not blank / error).
+2. **Users** — list seed users; search by name/email; create a user (success banner).
+3. **Wallets** — list wallets; open one; optional create wallet for a user id.
+4. **Wallet detail** — balance/status visible; **credit** then **debit**; table updates; banners clear.
+5. **Errors** — debit more than balance → meaningful error; frozen/inactive if you set status via API → blocked with message.
+6. **Daily report** — pick today’s UTC date; after credit/debit, credits/debits/count move; empty day shows zeros.
+
+## Tests
 
 ```bash
-docker compose down        # stop
-docker compose down -v     # stop + wipe DB volume
+npm test                 # unit (no DB)
+npm run test:e2e         # integration — needs Postgres up
 ```
 
-## API overview
+Unit: credit, debit, duplicate `referenceId`, status guards, concurrent lock simulation.  
+E2E: same money flows over HTTP against real Postgres (see [docs/TESTING.md](docs/TESTING.md)).
 
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-| `POST` | `/api/users` | Create user |
-| `GET` | `/api/users` | List users (`page`, `limit`, `search`) |
-| `POST` | `/api/wallets` | Create wallet (balance starts at `0`) |
-| `GET` | `/api/wallets` | List wallets (`page`, `limit`, optional `userId`, `currency`, `status`) |
-| `GET` | `/api/wallets/:id` | Get wallet |
-| `POST` | `/api/wallets/:id/credit` | Credit (`amount`, `referenceId`, optional `description`) |
-| `POST` | `/api/wallets/:id/debit` | Debit (same body; no negative balance) |
-| `GET` | `/api/wallets/:id/transactions` | Ledger (`page`, `limit`, `type`, `referenceId`) |
-| `GET` | `/api/reports/overview` | Dashboard all-time totals |
-| `GET` | `/api/reports/daily-summary?date=YYYY-MM-DD` | System-wide UTC daily summary (zeros if empty; no pagination) |
-| `GET` | `/api/health` | Health check |
+## Scripts
 
-**Important:** Clients must generate and send `referenceId` on credit/debit (unique **per wallet**). Retries must reuse the same id. Duplicates → `409`. See [docs/FRONTEND-API-CONTEXT.md](docs/FRONTEND-API-CONTEXT.md).
-
-## Seed data
-
-Set `SEED_DATA=true` then restart the API. Seeds (idempotent by email):
-
-| Email | Wallet |
-| ----- | ------ |
-| `seed.alice@example.com` | USD @ `100.00` |
-| `seed.bob@example.com` | USD @ `100.00` |
-| `seed.carol@example.com` | USD @ `100.00` |
-
-## Project structure
-
-```
-src/
-├── users/
-├── wallets/            # credit/debit + locking live here
-├── transactions/
-├── reports/            # daily summary
-├── common/             # pagination, money helpers
-├── database/           # TypeORM config + SeedModule
-├── health/
-└── main.ts
-```
-
-## Available Scripts
-
-| Script | Description |
-| ------ | ----------- |
-| `npm run start:dev` | Watch mode |
-| `npm run build` | Compile to `dist/` |
-| `npm run start:prod` | Run compiled build |
-| `npm run lint` | ESLint |
-| `npm run test` | Unit tests |
-| `npm run migration:run` | Run migrations |
-
-## Architecture and domain docs
-
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — stack and layout  
-- [docs/DOMAIN-AND-SOLUTION.md](docs/DOMAIN-AND-SOLUTION.md) — domain + technical decisions  
-- [docs/FRONTEND-API-CONTEXT.md](docs/FRONTEND-API-CONTEXT.md) — FE-oriented API guide  
-- [docs/FRONTEND.md](docs/FRONTEND.md) — admin UI architecture and how to run  
+`start:dev` · `build` · `test` · `lint` · `migration:run` · frontend: `cd frontend && npm run dev`
 
 ## Known limitations
 
-- No authentication (implicit system-admin API).
-- No wallet-to-wallet transfer endpoint.
-- Daily summaries bucket by **UTC** date.
-- `synchronize` is enabled outside production; use migrations in production.
-
-## Production Notes
-
-- Set `NODE_ENV=production` (disables schema sync).
-- Prefer migrations over `synchronize`.
-- Keep `SEED_DATA=false` in production unless intentionally seeding.
-- Production image: `docker build --target production -t mini-operations-wallet-portal .`
+No auth · no transfers · daily buckets in **UTC** · `synchronize` off in production (use migrations).
 
 ## AI usage disclosure
 
-Parts of this project’s initial scaffolding (NestJS layout, Docker/Compose setup, TypeORM/PostgreSQL wiring, health module, Swagger bootstrap, domain docs, and feature modules) were generated and assisted with Cursor AI. Business logic and subsequent features are developed by the team; AI may also be used for scaffolding, refactors, and explanations. Review and ownership remain with the human authors.
+**Used AI (Cursor) for:** Nest/Docker/TypeORM scaffold; feature modules (users/wallets/transactions/reports); locking/idempotency wiring; seed flag; Vite React admin UI; docs drafts; unit tests for money moves.
+
+**Manually designed / decided:** Product rules (per-wallet `referenceId`, 409 on duplicate, UTC daily summary, zeros for empty days, `SEED_DATA` gate, money as `numeric(19,2)` + strings, same-repo frontend, overview API for dashboard, UI layout).
+
+**Tradeoffs:** Pessimistic row locks (simple correctness over optimistic retries); decimal strings over JS floats and over integer cents (readable multi-currency codes); UUID ids (safe without auth) over sequential ints; thin hooks/pages UI over a heavy FE framework; overview aggregate endpoint vs FE summing pages; unit tests for fast CI plus a small Postgres e2e suite for real locks (optional in CI).
+
+Review and ownership remain with the human authors.
 
 ## License
 

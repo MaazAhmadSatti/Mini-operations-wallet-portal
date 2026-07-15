@@ -45,10 +45,7 @@ export class WalletsController {
     description:
       'Requires client referenceId (unique per wallet). Duplicate referenceId returns 409.',
   })
-  credit(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: WalletMoneyDto,
-  ) {
+  credit(@Param('id', ParseUUIDPipe) id: string, @Body() dto: WalletMoneyDto) {
     return this.walletsService.credit(id, dto);
   }
 
@@ -58,10 +55,7 @@ export class WalletsController {
     description:
       'Requires client referenceId (unique per wallet). Fails if balance would go negative.',
   })
-  debit(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: WalletMoneyDto,
-  ) {
+  debit(@Param('id', ParseUUIDPipe) id: string, @Body() dto: WalletMoneyDto) {
     return this.walletsService.debit(id, dto);
   }
 }

@@ -58,6 +58,8 @@ export function UsersPage() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
+              pattern="[A-Za-z]+(?: [A-Za-z]+)*"
+              title="Letters and spaces only"
               required
             />
           </label>
@@ -65,7 +67,12 @@ export function UsersPage() {
             Phone
             <input
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+              inputMode="numeric"
+              pattern="\d{7,15}"
+              title="Digits only (7–15 characters)"
+              minLength={7}
+              maxLength={15}
               required
             />
           </label>

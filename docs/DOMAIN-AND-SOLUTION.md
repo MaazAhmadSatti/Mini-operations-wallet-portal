@@ -89,4 +89,4 @@ src/
 - Daily summaries use UTC days only.
 - Schema `synchronize` is for non-production; use migrations in production.
 
-See also: [ARCHITECTURE.md](./ARCHITECTURE.md), [FRONTEND-API-CONTEXT.md](./FRONTEND-API-CONTEXT.md).
+See also: [ARCHITECTURE.md](./ARCHITECTURE.md), [FRONTEND-API-CONTEXT.md](./FRONTEND-API-CONTEXT.md), [FRONTEND.md](./FRONTEND.md), [TESTING.md](./TESTING.md).

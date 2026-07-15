@@ -7,11 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
-import {
-  TransactionType,
-  UserStatus,
-  WalletStatus,
-} from '../common/enums';
+import { TransactionType, UserStatus, WalletStatus } from '../common/enums';
 import { assertPositiveAmount, formatMoney, toDecimal } from '../common/money';
 import { DailySummary } from '../reports/daily-summary.entity';
 import { Transaction } from '../transactions/transaction.entity';
@@ -169,7 +165,9 @@ export class WalletsService {
 
   private assertWalletOperable(wallet: Wallet): void {
     if (wallet.status === WalletStatus.FROZEN) {
-      throw new ForbiddenException('Wallet is frozen and cannot be credited or debited');
+      throw new ForbiddenException(
+        'Wallet is frozen and cannot be credited or debited',
+      );
     }
     if (!wallet.user) {
       throw new NotFoundException('Wallet owner not found');

@@ -67,3 +67,5 @@ On submit the UI calls `crypto.randomUUID()` and sends it as `referenceId`. Amou
 
 1. Start Postgres + API with `SEED_DATA=true` for demo users/wallets.
 2. Open Dashboard → Users → Wallets → open a wallet → credit/debit → Daily report for today’s UTC date.
+
+Manual QA steps: [README frontend checklist](../README.md#frontend-manual-checklist).

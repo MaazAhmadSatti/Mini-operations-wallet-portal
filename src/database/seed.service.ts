@@ -11,17 +11,17 @@ const SEED_USERS = [
   {
     email: 'seed.alice@example.com',
     name: 'Alice Seed',
-    phone: '+10000000001',
+    phone: '10000000001',
   },
   {
     email: 'seed.bob@example.com',
     name: 'Bob Seed',
-    phone: '+10000000002',
+    phone: '10000000002',
   },
   {
     email: 'seed.carol@example.com',
     name: 'Carol Seed',
-    phone: '+10000000003',
+    phone: '10000000003',
   },
 ] as const;
 
