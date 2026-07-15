@@ -56,6 +56,17 @@ npm run start:dev
 - **Swagger:** http://localhost:3000/api/docs  
 - **Health:** http://localhost:3000/api/health  
 
+### 5. Run the frontend (optional admin UI)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- **UI:** http://localhost:5173  
+- Guide: [docs/FRONTEND.md](docs/FRONTEND.md)
+
 ## Docker (Full Stack)
 
 ```bash
@@ -79,6 +90,7 @@ docker compose down -v     # stop + wipe DB volume
 | `POST` | `/api/wallets/:id/credit` | Credit (`amount`, `referenceId`, optional `description`) |
 | `POST` | `/api/wallets/:id/debit` | Debit (same body; no negative balance) |
 | `GET` | `/api/wallets/:id/transactions` | Ledger (`page`, `limit`, `type`, `referenceId`) |
+| `GET` | `/api/reports/overview` | Dashboard all-time totals |
 | `GET` | `/api/reports/daily-summary?date=YYYY-MM-DD` | System-wide UTC daily summary (zeros if empty; no pagination) |
 | `GET` | `/api/health` | Health check |
 
@@ -124,6 +136,7 @@ src/
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — stack and layout  
 - [docs/DOMAIN-AND-SOLUTION.md](docs/DOMAIN-AND-SOLUTION.md) — domain + technical decisions  
 - [docs/FRONTEND-API-CONTEXT.md](docs/FRONTEND-API-CONTEXT.md) — FE-oriented API guide  
+- [docs/FRONTEND.md](docs/FRONTEND.md) — admin UI architecture and how to run  
 
 ## Known limitations
 

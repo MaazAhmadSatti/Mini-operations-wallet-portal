@@ -178,6 +178,24 @@ Each row includes `balanceBefore`, `balanceAfter`, `amount`, `type`, `referenceI
 
 ### Reports
 
+#### `GET /reports/overview`
+
+System-wide **all-time** metrics for the dashboard (no query params).
+
+```json
+{
+  "totalWallets": 3,
+  "totalBalance": "300.00",
+  "totalCredits": "50.00",
+  "totalDebits": "15.00",
+  "transactionCount": 12
+}
+```
+
+- `totalBalance` — sum of all wallet balances  
+- `totalCredits` / `totalDebits` — sum of ledger amounts by type  
+- Money fields are decimal strings (2 places)
+
 #### `GET /reports/daily-summary?date=YYYY-MM-DD`
 
 System-wide summary for one **UTC** calendar date.

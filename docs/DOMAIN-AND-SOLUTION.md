@@ -34,6 +34,7 @@ Backend operations wallet API used as a **system-admin** surface (no auth yet). 
 | `POST` | `/wallets/:id/credit` | Credit wallet |
 | `POST` | `/wallets/:id/debit` | Debit wallet |
 | `GET` | `/wallets/:id/transactions` | List wallet ledger |
+| `GET` | `/reports/overview` | Dashboard all-time totals |
 | `GET` | `/reports/daily-summary` | System-wide daily summary (single date; no pagination) |
 
 Credit/debit are blocked when the user is `inactive` or the wallet is `frozen`.

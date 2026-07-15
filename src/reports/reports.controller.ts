@@ -8,6 +8,16 @@ import { ReportsService } from './reports.service';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
+  @Get('overview')
+  @ApiOperation({
+    summary: 'System-wide overview metrics for the dashboard',
+    description:
+      'All-time totals: wallet count, sum of balances, sum of credits/debits, transaction count.',
+  })
+  getOverview() {
+    return this.reportsService.getOverview();
+  }
+
   @Get('daily-summary')
   @ApiOperation({
     summary: 'Get system-wide daily summary for a UTC date',
